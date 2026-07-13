@@ -1,4 +1,4 @@
-/*=============================================================================
+﻿/*=============================================================================
   EDUGESTOR - ESQUEMA DE BASE DE DATOS
   17 tablas: personas, estructura escolar, matricula, ensenanza,
   evaluacion, asistencia y auditoria.

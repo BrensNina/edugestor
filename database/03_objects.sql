@@ -1,4 +1,4 @@
-/*=============================================================================
+﻿/*=============================================================================
   EDUGESTOR - INDICES Y OBJETOS DE PROGRAMACION
   Requiere haber ejecutado 01_schema.sql (y opcionalmente 02_seed.sql).
 
@@ -538,6 +538,15 @@ BEGIN
         IF NOT EXISTS
             (SELECT 1 FROM curso_aula WHERE id_aula_periodo = @id_aula_periodo)
             THROW 51009, 'El aula no tiene materias asignadas.', 1;
+
+        IF EXISTS
+        (
+            SELECT 1
+            FROM horario_clase h
+            INNER JOIN asistencia a ON a.id_horario = h.id_horario
+            WHERE h.id_aula_periodo = @id_aula_periodo
+        )
+            THROW 51016, 'No se puede regenerar el horario: ya hay asistencia registrada sobre las clases actuales.', 1;
 
         DELETE FROM horario_clase
         WHERE id_aula_periodo = @id_aula_periodo;
@@ -1101,11 +1110,18 @@ BEGIN
 
     WHILE @@FETCH_STATUS = 0
     BEGIN
-        EXEC usp_generar_horario_aula
-            @id_aula_periodo = @id_aula,
-            @mostrar_resultado = 0;
+        BEGIN TRY
+            EXEC usp_generar_horario_aula
+                @id_aula_periodo = @id_aula,
+                @mostrar_resultado = 0;
 
-        SET @aulas_programadas = @aulas_programadas + 1;
+            SET @aulas_programadas = @aulas_programadas + 1;
+        END TRY
+        BEGIN CATCH
+            -- El aula queda sin regenerar (por ejemplo, si ya tiene
+            -- asistencia registrada); el lote continua con el resto.
+        END CATCH;
+
         FETCH NEXT FROM cursor_horarios INTO @id_aula;
     END;
 

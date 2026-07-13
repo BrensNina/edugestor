@@ -1,4 +1,4 @@
-/*=============================================================================
+﻿/*=============================================================================
   EDUGESTOR - DATOS DE PRUEBA
   Requiere haber ejecutado 01_schema.sql. La contraseña de todos los usuarios
   de prueba es "demo1234" (ya viene hasheada con bcrypt para que funcione con
