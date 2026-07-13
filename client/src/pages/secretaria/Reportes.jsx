@@ -2,7 +2,11 @@ import { useEffect, useState } from 'react';
 import { AlertCircle, CalendarX, BarChart3, Briefcase } from 'lucide-react';
 import Layout from '../../components/Layout';
 import Table from '../../components/Table';
+import InfoTooltip from '../../components/InfoTooltip';
 import { catalogos, reportes } from '../../api';
+
+const TOOLTIP_RIESGO_NOTAS = 'Recorre las calificaciones del periodo elegido y calcula el promedio ponderado por alumno y curso; lista a quienes queden por debajo de 11, para intervenir antes de que el bimestre cierre.';
+const TOOLTIP_RIESGO_INASISTENCIA = 'Recorre la asistencia de cada alumno y curso ordenada por fecha y detecta la racha más larga de faltas seguidas sin justificar. Cambia el número para ajustar cuántas faltas seguidas son la señal de alerta.';
 
 export default function Reportes() {
     const [tab, setTab] = useState('riesgo-notas');
@@ -45,6 +49,7 @@ export default function Reportes() {
                         <h3>
                             {tab === 'riesgo-notas' ? <AlertCircle size={17} /> : <CalendarX size={17} />}
                             {tab === 'riesgo-notas' ? 'Alumnos con promedio menor a 11' : 'Alumnos con faltas consecutivas'}
+                            <InfoTooltip texto={tab === 'riesgo-notas' ? TOOLTIP_RIESGO_NOTAS : TOOLTIP_RIESGO_INASISTENCIA} />
                         </h3>
                         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                             <select value={idPeriodo} onChange={(e) => setIdPeriodo(Number(e.target.value))}>

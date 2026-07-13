@@ -1028,70 +1028,86 @@ GO
 
   Cada cursor cubre un requerimiento real del sistema, no solo una muestra
   academica del tema:
-  - usp_recalcular_aforos_cursor       -> RNF de integridad y recuperacion.
+  - usp_verificar_periodos_activos_cursor -> RNF de integridad y recuperacion.
   - usp_generar_horarios_faltantes_cursor -> RF de generacion masiva de horarios.
   - usp_alumnos_en_riesgo_cursor       -> RF de alerta temprana por notas.
   - usp_inasistencias_consecutivas_cursor -> RF de alerta temprana por faltas.
 =============================================================================*/
 
-/* RNF de integridad de datos: herramienta de mantenimiento para que la
-   secretaria reconcilie el contador de matriculados de cada aula tras
-   restaurar un backup o migrar datos. En operacion normal el trigger
-   trg_matricula_aforo ya mantiene el contador al dia; este procedimiento
-   cubre el caso de recuperacion, donde el contador pudo quedar desfasado.
-   Si la cantidad real de matriculas de un aula supera su aforo_maximo
-   (dato que solo puede llegar a existir si algo escribio en matricula
-   sin pasar por usp_matricular_alumno), esa aula puntual no se puede
-   corregir por la restriccion CK_aula_cantidad; el procedimiento la
-   omite y continua con el resto en vez de abortar todo el lote. */
-CREATE OR ALTER PROCEDURE usp_recalcular_aforos_cursor
+IF OBJECT_ID('usp_recalcular_aforos_cursor', 'P') IS NOT NULL
+    DROP PROCEDURE usp_recalcular_aforos_cursor;
+GO
+
+/* RNF de integridad de datos: la regla de negocio exige que un año
+   academico tenga como maximo un periodo activo a la vez (las notas solo
+   se registran en el periodo activo). En el uso normal, usp_activar_periodo
+   ya garantiza eso porque desactiva los demas periodos del año antes de
+   activar el elegido; este procedimiento cubre el caso de recuperacion,
+   donde restaurar un backup o migrar datos pudo dejar dos o mas periodos
+   del mismo año marcados como activos a la vez. A diferencia de un
+   contador de aforo, este dato siempre se puede corregir sin perder
+   informacion: si un año tiene mas de un periodo activo, se conserva el
+   de fecha_inicio mas reciente y se desactivan los demas. Si un año no
+   tiene ningun periodo activo se deja tal cual, porque activar uno de
+   oficio es una decision de la secretaria, no de una tarea automatica. */
+CREATE OR ALTER PROCEDURE usp_verificar_periodos_activos_cursor
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    DECLARE @id_aula INT;
-    DECLARE @cantidad_real INT;
-    DECLARE @aulas_corregidas INT = 0;
+    DECLARE @anio_academico INT;
+    DECLARE @cantidad_activos INT;
+    DECLARE @id_periodo_conservado INT;
+    DECLARE @anios_corregidos INT = 0;
 
-    DECLARE cursor_aulas CURSOR LOCAL FAST_FORWARD FOR
-        SELECT id_aula_periodo FROM aula_periodo;
+    DECLARE @Resultado TABLE
+    (
+        anio_academico INT,
+        periodos_activos_encontrados INT,
+        id_periodo_conservado INT
+    );
 
-    OPEN cursor_aulas;
-    FETCH NEXT FROM cursor_aulas INTO @id_aula;
+    DECLARE cursor_anios CURSOR LOCAL FAST_FORWARD FOR
+        SELECT DISTINCT anio_academico FROM periodo_academico;
+
+    OPEN cursor_anios;
+    FETCH NEXT FROM cursor_anios INTO @anio_academico;
 
     WHILE @@FETCH_STATUS = 0
     BEGIN
-        SELECT @cantidad_real = COUNT(*)
-        FROM matricula
-        WHERE id_aula_periodo = @id_aula;
+        SELECT @cantidad_activos = COUNT(*)
+        FROM periodo_academico
+        WHERE anio_academico = @anio_academico
+          AND esta_activo = 1;
 
-        IF EXISTS
-        (
-            SELECT 1 FROM aula_periodo
-            WHERE id_aula_periodo = @id_aula
-              AND cantidad_matriculados <> @cantidad_real
-        )
+        IF @cantidad_activos > 1
         BEGIN
-            BEGIN TRY
-                UPDATE aula_periodo
-                SET cantidad_matriculados = @cantidad_real
-                WHERE id_aula_periodo = @id_aula;
+            SELECT TOP 1 @id_periodo_conservado = id_periodo
+            FROM periodo_academico
+            WHERE anio_academico = @anio_academico
+              AND esta_activo = 1
+            ORDER BY fecha_inicio DESC;
 
-                SET @aulas_corregidas = @aulas_corregidas + 1;
-            END TRY
-            BEGIN CATCH
-                -- El aula queda sin corregir (por ejemplo, si la cantidad
-                -- real supera su aforo_maximo); el lote continua igual.
-            END CATCH;
+            UPDATE periodo_academico
+            SET esta_activo = 0
+            WHERE anio_academico = @anio_academico
+              AND esta_activo = 1
+              AND id_periodo <> @id_periodo_conservado;
+
+            INSERT INTO @Resultado (anio_academico, periodos_activos_encontrados, id_periodo_conservado)
+            VALUES (@anio_academico, @cantidad_activos, @id_periodo_conservado);
+
+            SET @anios_corregidos = @anios_corregidos + 1;
         END;
 
-        FETCH NEXT FROM cursor_aulas INTO @id_aula;
+        FETCH NEXT FROM cursor_anios INTO @anio_academico;
     END;
 
-    CLOSE cursor_aulas;
-    DEALLOCATE cursor_aulas;
+    CLOSE cursor_anios;
+    DEALLOCATE cursor_anios;
 
-    SELECT @aulas_corregidas AS aulas_corregidas;
+    SELECT @anios_corregidos AS anios_corregidos;
+    SELECT * FROM @Resultado;
 END;
 GO
 

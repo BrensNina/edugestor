@@ -24,4 +24,16 @@ async function activar(req, res, next) {
     }
 }
 
-module.exports = { crear, activar };
+async function verificarActivos(req, res, next) {
+    try {
+        const result = await execProcedure('usp_verificar_periodos_activos_cursor');
+        res.json({
+            anios_corregidos: result.recordsets[0][0].anios_corregidos,
+            detalle: result.recordsets[1]
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
+module.exports = { crear, activar, verificarActivos };

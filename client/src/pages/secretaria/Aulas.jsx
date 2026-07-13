@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { DoorOpen, CalendarPlus, RefreshCw, Plus, BookOpen, CalendarClock } from 'lucide-react';
+import { DoorOpen, CalendarPlus, Plus, BookOpen, CalendarClock } from 'lucide-react';
 import Layout from '../../components/Layout';
 import Table from '../../components/Table';
 import Badge from '../../components/Badge';
+import InfoTooltip from '../../components/InfoTooltip';
 import { aulas, catalogos, personas } from '../../api';
 
 function TabOcupacion() {
@@ -20,23 +21,15 @@ function TabOcupacion() {
         setMensaje(`Se generaron horarios para ${aulas_programadas} aula(s).`);
     }
 
-    async function recalcularAforos() {
-        const { aulas_corregidas } = await aulas.recalcularAforos();
-        setMensaje(`Se corrigieron ${aulas_corregidas} aula(s).`);
-        await recargar();
-    }
-
     return (
         <div className="card">
             <div className="card-header">
                 <h3><DoorOpen size={17} /> Ocupación de aulas</h3>
-                <div style={{ display: 'flex', gap: 10 }}>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
                     <button type="button" className="btn btn-outline" onClick={generarHorariosFaltantes}>
                         <CalendarPlus size={15} /> Generar horarios faltantes
                     </button>
-                    <button type="button" className="btn btn-outline" onClick={recalcularAforos}>
-                        <RefreshCw size={15} /> Recalcular aforos
-                    </button>
+                    <InfoTooltip texto="Busca aulas que ya tienen materias asignadas pero no las 15 clases completas (3 bloques x 5 días) y les genera el horario automáticamente. Útil al abrir muchas aulas de golpe al iniciar un periodo." />
                 </div>
             </div>
             {mensaje && <div className="alert alert-success" style={{ marginBottom: 14 }}>{mensaje}</div>}

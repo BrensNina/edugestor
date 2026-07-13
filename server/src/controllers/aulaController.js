@@ -81,15 +81,6 @@ async function generarHorariosFaltantes(req, res, next) {
     }
 }
 
-async function recalcularAforos(req, res, next) {
-    try {
-        const result = await execProcedure('usp_recalcular_aforos_cursor');
-        res.json(result.recordset[0]);
-    } catch (err) {
-        next(err);
-    }
-}
-
 module.exports = {
     disponibles,
     ocupacion,
@@ -97,6 +88,5 @@ module.exports = {
     materias,
     agregarMateria,
     generarHorario,
-    generarHorariosFaltantes,
-    recalcularAforos
+    generarHorariosFaltantes
 };

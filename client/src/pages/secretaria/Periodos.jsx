@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Plus, CalendarRange, CheckCircle2 } from 'lucide-react';
+import { Plus, CalendarRange, CheckCircle2, ShieldCheck } from 'lucide-react';
 import Layout from '../../components/Layout';
 import Table from '../../components/Table';
 import Badge from '../../components/Badge';
+import InfoTooltip from '../../components/InfoTooltip';
 import { catalogos, periodos } from '../../api';
 
 export default function Periodos() {
@@ -10,6 +11,8 @@ export default function Periodos() {
     const [form, setForm] = useState({ anio_academico: new Date().getFullYear(), nombre: '', fecha_inicio: '', fecha_fin: '' });
     const [error, setError] = useState('');
     const [enviando, setEnviando] = useState(false);
+    const [mensajeVerificacion, setMensajeVerificacion] = useState('');
+    const [detalleVerificacion, setDetalleVerificacion] = useState([]);
 
     async function recargar() {
         setLista(await catalogos.periodos());
@@ -38,6 +41,17 @@ export default function Periodos() {
 
     async function activar(id) {
         await periodos.activar(id);
+        await recargar();
+    }
+
+    async function verificarActivos() {
+        const { anios_corregidos, detalle } = await periodos.verificarActivos();
+        setMensajeVerificacion(
+            anios_corregidos === 0
+                ? 'Todo en orden: cada año académico tiene como máximo un periodo activo.'
+                : `Se corrigieron ${anios_corregidos} año(s) con más de un periodo activo a la vez.`
+        );
+        setDetalleVerificacion(detalle);
         await recargar();
     }
 
@@ -70,7 +84,26 @@ export default function Periodos() {
             </form>
 
             <div className="card">
-                <div className="card-header"><h3><CalendarRange size={17} /> Periodos registrados</h3></div>
+                <div className="card-header">
+                    <h3><CalendarRange size={17} /> Periodos registrados</h3>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                        <button type="button" className="btn btn-outline" onClick={verificarActivos}>
+                            <ShieldCheck size={15} /> Verificar periodos activos
+                        </button>
+                        <InfoTooltip texto="Revisa año por año que exista como máximo un periodo activo a la vez (las notas solo se registran en el periodo activo). Si una restauración de backup o migración dejó dos activos del mismo año, conserva el más reciente y desactiva los demás." />
+                    </div>
+                </div>
+                {mensajeVerificacion && <div className="alert alert-success" style={{ marginBottom: 14 }}>{mensajeVerificacion}</div>}
+                {detalleVerificacion.length > 0 && (
+                    <Table
+                        columns={[
+                            { key: 'anio_academico', label: 'Año' },
+                            { key: 'periodos_activos_encontrados', label: 'Periodos activos encontrados' },
+                            { key: 'id_periodo_conservado', label: 'Periodo conservado (ID)' }
+                        ]}
+                        rows={detalleVerificacion}
+                    />
+                )}
                 <Table
                     columns={[
                         { key: 'anio_academico', label: 'Año' },

@@ -7,8 +7,7 @@ const {
     materias,
     agregarMateria,
     generarHorario,
-    generarHorariosFaltantes,
-    recalcularAforos
+    generarHorariosFaltantes
 } = require('../controllers/aulaController');
 
 const router = Router();
@@ -21,6 +20,5 @@ router.get('/:id/materias', materias);
 router.post('/:id/materias', agregarMateria);
 router.post('/:id/generar-horario', generarHorario);
 router.post('/generar-horarios-faltantes', generarHorariosFaltantes);
-router.post('/recalcular-aforos', recalcularAforos);
 
 module.exports = router;

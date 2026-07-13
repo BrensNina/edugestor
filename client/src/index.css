@@ -213,6 +213,16 @@ a {
     flex-shrink: 0;
 }
 
+.info-tooltip {
+    color: var(--color-text-muted);
+    cursor: help;
+    flex-shrink: 0;
+}
+
+.info-tooltip:hover {
+    color: var(--color-navy);
+}
+
 .stat-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));

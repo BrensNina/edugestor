@@ -22,7 +22,8 @@ export const personas = {
 
 export const periodos = {
     crear: (data) => client.post('/periodos', data).then((r) => r.data),
-    activar: (id) => client.post(`/periodos/${id}/activar`).then((r) => r.data)
+    activar: (id) => client.post(`/periodos/${id}/activar`).then((r) => r.data),
+    verificarActivos: () => client.post('/periodos/verificar-activos').then((r) => r.data)
 };
 
 export const aulas = {
@@ -32,8 +33,7 @@ export const aulas = {
     materias: (idAulaPeriodo) => client.get(`/aulas/${idAulaPeriodo}/materias`).then((r) => r.data),
     agregarMateria: (idAulaPeriodo, data) => client.post(`/aulas/${idAulaPeriodo}/materias`, data).then((r) => r.data),
     generarHorario: (idAulaPeriodo) => client.post(`/aulas/${idAulaPeriodo}/generar-horario`).then((r) => r.data),
-    generarHorariosFaltantes: () => client.post('/aulas/generar-horarios-faltantes').then((r) => r.data),
-    recalcularAforos: () => client.post('/aulas/recalcular-aforos').then((r) => r.data)
+    generarHorariosFaltantes: () => client.post('/aulas/generar-horarios-faltantes').then((r) => r.data)
 };
 
 export const matriculas = {
