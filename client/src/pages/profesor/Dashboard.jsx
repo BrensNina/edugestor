@@ -5,6 +5,7 @@ import StatCard from '../../components/StatCard';
 import Table from '../../components/Table';
 import { useAuth } from '../../context/AuthContext';
 import { profesores } from '../../api';
+import { formatHora } from '../../utils/format';
 
 const DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
 
@@ -31,8 +32,8 @@ export default function ProfesorDashboard() {
                 <Table
                     columns={[
                         { key: 'dia_semana', label: 'Día' },
-                        { key: 'hora_inicio', label: 'Inicio' },
-                        { key: 'hora_fin', label: 'Fin' },
+                        { key: 'hora_inicio', label: 'Inicio', render: (r) => formatHora(r.hora_inicio) },
+                        { key: 'hora_fin', label: 'Fin', render: (r) => formatHora(r.hora_fin) },
                         { key: 'nombre_curso', label: 'Curso' },
                         { key: 'aula', label: 'Aula', render: (r) => `${r.nivel} ${r.numero_grado} ${r.seccion}` }
                     ]}

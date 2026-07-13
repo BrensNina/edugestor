@@ -4,6 +4,7 @@ import Layout from '../../components/Layout';
 import Table from '../../components/Table';
 import { useAuth } from '../../context/AuthContext';
 import { alumnos } from '../../api';
+import { formatHora } from '../../utils/format';
 
 export default function Horario() {
     const { usuario } = useAuth();
@@ -21,8 +22,8 @@ export default function Horario() {
                 <Table
                     columns={[
                         { key: 'dia_semana', label: 'Día' },
-                        { key: 'hora_inicio', label: 'Inicio' },
-                        { key: 'hora_fin', label: 'Fin' },
+                        { key: 'hora_inicio', label: 'Inicio', render: (r) => formatHora(r.hora_inicio) },
+                        { key: 'hora_fin', label: 'Fin', render: (r) => formatHora(r.hora_fin) },
                         { key: 'nombre_curso', label: 'Curso' },
                         {
                             key: 'profesor',

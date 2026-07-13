@@ -4,6 +4,7 @@ import Layout from '../../components/Layout';
 import Table from '../../components/Table';
 import { useAuth } from '../../context/AuthContext';
 import { asistencias, notas, profesores } from '../../api';
+import { formatHora } from '../../utils/format';
 
 const ESTADOS = ['Presente', 'Tarde', 'Ausente', 'Justificado'];
 const hoy = () => new Date().toISOString().slice(0, 10);
@@ -54,7 +55,7 @@ export default function Asistencia() {
                         <select value={idHorario} onChange={(e) => setIdHorario(e.target.value)}>
                             {horarios.map((h) => (
                                 <option key={h.id_horario} value={h.id_horario}>
-                                    {h.dia_semana} {h.hora_inicio?.slice(0, 5)} · {h.nombre_curso} ({h.nivel} {h.numero_grado} {h.seccion})
+                                    {h.dia_semana} {formatHora(h.hora_inicio)} · {h.nombre_curso} ({h.nivel} {h.numero_grado} {h.seccion})
                                 </option>
                             ))}
                         </select>
