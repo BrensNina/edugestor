@@ -3,6 +3,7 @@ const cors = require('cors');
 
 const authRoutes = require('./routes/authRoutes');
 const catalogoRoutes = require('./routes/catalogoRoutes');
+const matriculaRoutes = require('./routes/matriculaRoutes');
 const personaRoutes = require('./routes/personaRoutes');
 const periodoRoutes = require('./routes/periodoRoutes');
 const aulaRoutes = require('./routes/aulaRoutes');
@@ -20,6 +21,7 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/catalogos', catalogoRoutes);
+app.use('/api/matriculas', matriculaRoutes);
 app.use('/api/personas', personaRoutes);
 app.use('/api/periodos', periodoRoutes);
 app.use('/api/aulas', aulaRoutes);
