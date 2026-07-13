@@ -1038,7 +1038,12 @@ GO
    secretaria reconcilie el contador de matriculados de cada aula tras
    restaurar un backup o migrar datos. En operacion normal el trigger
    trg_matricula_aforo ya mantiene el contador al dia; este procedimiento
-   cubre el caso de recuperacion, donde el contador pudo quedar desfasado. */
+   cubre el caso de recuperacion, donde el contador pudo quedar desfasado.
+   Si la cantidad real de matriculas de un aula supera su aforo_maximo
+   (dato que solo puede llegar a existir si algo escribio en matricula
+   sin pasar por usp_matricular_alumno), esa aula puntual no se puede
+   corregir por la restriccion CK_aula_cantidad; el procedimiento la
+   omite y continua con el resto en vez de abortar todo el lote. */
 CREATE OR ALTER PROCEDURE usp_recalcular_aforos_cursor
 AS
 BEGIN
@@ -1067,11 +1072,17 @@ BEGIN
               AND cantidad_matriculados <> @cantidad_real
         )
         BEGIN
-            UPDATE aula_periodo
-            SET cantidad_matriculados = @cantidad_real
-            WHERE id_aula_periodo = @id_aula;
+            BEGIN TRY
+                UPDATE aula_periodo
+                SET cantidad_matriculados = @cantidad_real
+                WHERE id_aula_periodo = @id_aula;
 
-            SET @aulas_corregidas = @aulas_corregidas + 1;
+                SET @aulas_corregidas = @aulas_corregidas + 1;
+            END TRY
+            BEGIN CATCH
+                -- El aula queda sin corregir (por ejemplo, si la cantidad
+                -- real supera su aforo_maximo); el lote continua igual.
+            END CATCH;
         END;
 
         FETCH NEXT FROM cursor_aulas INTO @id_aula;
