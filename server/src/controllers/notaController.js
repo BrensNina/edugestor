@@ -60,8 +60,8 @@ async function crearEvaluacion(req, res, next) {
         const { id_periodo, nombre, peso, fecha } = req.body;
         const result = await execQuery(
             `INSERT INTO evaluacion (id_curso_aula, id_periodo, nombre, peso, fecha)
-             OUTPUT INSERTED.*
-             VALUES (@id_curso_aula, @id_periodo, @nombre, @peso, @fecha)`,
+             VALUES (@id_curso_aula, @id_periodo, @nombre, @peso, @fecha);
+             SELECT * FROM evaluacion WHERE id_evaluacion = SCOPE_IDENTITY();`,
             { id_curso_aula: req.params.id, id_periodo, nombre, peso, fecha }
         );
         res.status(201).json(result.recordset[0]);

@@ -50,8 +50,8 @@ async function agregarMateria(req, res, next) {
         const { id_curso, id_profesor } = req.body;
         const result = await execQuery(
             `INSERT INTO curso_aula (id_aula_periodo, id_curso, id_profesor)
-             OUTPUT INSERTED.*
-             VALUES (@id_aula_periodo, @id_curso, @id_profesor)`,
+             VALUES (@id_aula_periodo, @id_curso, @id_profesor);
+             SELECT * FROM curso_aula WHERE id_curso_aula = SCOPE_IDENTITY();`,
             { id_aula_periodo: req.params.id, id_curso, id_profesor: id_profesor || null }
         );
         res.status(201).json(result.recordset[0]);
